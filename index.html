@@ -1,30 +1,463 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance Verification</title>
-    <style>
-        * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #121212; color: #e0e0e0; padding: 20px 15px; margin: 0; }
-        .container { max-width: 420px; margin: 0 auto; background: #1e1e1e; padding: 22px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-        h2 { margin-top: 0; text-align: center; color: #64ffda; font-size: 22px; }
-        label { display: block; margin-top: 15px; font-weight: bold; color: #b0bec5; font-size: 14px; }
-        select, input[type="text"] { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #333; background: #2a2a2a; color: #fff; border-radius: 8px; font-size: 15px; outline: none; }
-        .hidden { display: none; }
-        button { background-color: #00e676; color: #000; border: none; padding: 14px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 20px; }
-        button:disabled { background-color: #555; cursor: not-allowed; }
-        #status { margin-top: 15px; font-size: 14px; text-align: center; font-weight: bold; line-height: 1.4; }
-        .error { color: #ff5252; }
-        .success { color: #69f0ae; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Attendance Verification</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    :root {
+        --bg: #080b10;
+        --card: rgba(20, 25, 34, 0.78);
+        --border: rgba(255,255,255,0.10);
+        --text: #f5f7fa;
+        --muted: #9da7b5;
+        --accent: #64ffda;
+        --accent2: #00e676;
+        --danger: #ff5252;
+        --warning: #ffd54f;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 20px 14px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        font-family:
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            Roboto,
+            Arial,
+            sans-serif;
+
+        color: var(--text);
+
+        background:
+            radial-gradient(circle at 20% 10%, rgba(100,255,218,0.08), transparent 30%),
+            radial-gradient(circle at 90% 90%, rgba(0,230,118,0.06), transparent 30%),
+            #080b10;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 430px;
+        position: relative;
+
+        padding: 28px 23px 24px;
+
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+
+        box-shadow:
+            0 25px 70px rgba(0,0,0,0.55),
+            inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    /* Secret trigger */
+    #secretTrigger {
+        position: absolute;
+        top: 0;
+        right: 0;
+
+        width: 55px;
+        height: 55px;
+
+        background: transparent;
+        border: none;
+        outline: none;
+
+        cursor: default;
+        opacity: 0;
+    }
+
+    .logo-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        margin-bottom: 15px;
+    }
+
+    .logo {
+        width: 115px;
+        height: 70px;
+        object-fit: contain;
+        display: block;
+    }
+
+    h2 {
+        margin: 0;
+        text-align: center;
+
+        font-size: 23px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+
+        color: #ffffff;
+    }
+
+    .subtitle {
+        text-align: center;
+        margin-top: 7px;
+        margin-bottom: 25px;
+
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.4px;
+    }
+
+    label {
+        display: block;
+        margin-top: 17px;
+        margin-bottom: 7px;
+
+        color: #c7d0db;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    select,
+    input[type="text"],
+    input[type="password"] {
+        width: 100%;
+
+        padding: 13px 14px;
+
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.09);
+
+        background: rgba(255,255,255,0.055);
+        color: #ffffff;
+
+        font-size: 15px;
+        outline: none;
+
+        transition:
+            border-color 0.2s ease,
+            background 0.2s ease,
+            box-shadow 0.2s ease;
+
+        appearance: none;
+        -webkit-appearance: none;
+    }
+
+    select {
+        background-image:
+            linear-gradient(45deg, transparent 50%, #8c97a5 50%),
+            linear-gradient(135deg, #8c97a5 50%, transparent 50%);
+        background-position:
+            calc(100% - 18px) 50%,
+            calc(100% - 13px) 50%;
+        background-size:
+            5px 5px,
+            5px 5px;
+        background-repeat: no-repeat;
+        padding-right: 35px;
+    }
+
+    select option {
+        background: #171b22;
+        color: white;
+    }
+
+    select:focus,
+    input:focus {
+        border-color: rgba(100,255,218,0.55);
+
+        background: rgba(100,255,218,0.045);
+
+        box-shadow:
+            0 0 0 3px rgba(100,255,218,0.08);
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    .submit-btn {
+        width: 100%;
+
+        margin-top: 25px;
+        padding: 14px;
+
+        border: none;
+        border-radius: 13px;
+
+        background: linear-gradient(
+            135deg,
+            #64ffda,
+            #00e676
+        );
+
+        color: #00120b;
+
+        font-size: 15px;
+        font-weight: 800;
+
+        cursor: pointer;
+
+        box-shadow:
+            0 8px 25px rgba(0,230,118,0.16);
+
+        transition:
+            transform 0.15s ease,
+            box-shadow 0.15s ease,
+            opacity 0.15s ease;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-1px);
+
+        box-shadow:
+            0 12px 30px rgba(0,230,118,0.23);
+    }
+
+    .submit-btn:active {
+        transform: translateY(0);
+    }
+
+    .submit-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    #status {
+        min-height: 20px;
+
+        margin-top: 17px;
+
+        padding: 0 5px;
+
+        text-align: center;
+
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    .error {
+        color: var(--danger);
+    }
+
+    .success {
+        color: #69f0ae;
+    }
+
+    .loading {
+        color: var(--warning);
+    }
+
+    /* =========================
+       ADMIN MODAL
+       ========================= */
+
+    .admin-overlay {
+        position: fixed;
+        inset: 0;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        padding: 18px;
+
+        background: rgba(0,0,0,0.72);
+
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+
+        z-index: 9999;
+    }
+
+    .admin-modal {
+        width: 100%;
+        max-width: 390px;
+
+        padding: 24px;
+
+        border-radius: 22px;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(31,38,50,0.96),
+                rgba(13,17,23,0.97)
+            );
+
+        border: 1px solid rgba(100,255,218,0.15);
+
+        box-shadow:
+            0 30px 90px rgba(0,0,0,0.65);
+    }
+
+    .admin-title {
+        text-align: center;
+
+        margin: 0;
+
+        font-size: 20px;
+        font-weight: 800;
+    }
+
+    .admin-subtitle {
+        text-align: center;
+
+        margin: 7px 0 20px;
+
+        color: var(--muted);
+
+        font-size: 12px;
+    }
+
+    .admin-input {
+        margin-bottom: 12px;
+    }
+
+    .admin-btn {
+        width: 100%;
+
+        padding: 12px;
+
+        border: none;
+        border-radius: 11px;
+
+        font-size: 14px;
+        font-weight: 700;
+
+        cursor: pointer;
+    }
+
+    .admin-login {
+        background: var(--accent);
+        color: #00120d;
+    }
+
+    .admin-close {
+        margin-top: 8px;
+
+        background: rgba(255,255,255,0.06);
+        color: #bfc7d1;
+    }
+
+    .admin-error {
+        min-height: 18px;
+
+        margin-bottom: 8px;
+
+        color: var(--danger);
+
+        text-align: center;
+        font-size: 12px;
+    }
+
+    .admin-options {
+        margin-top: 15px;
+    }
+
+    .admin-option {
+        display: flex;
+        align-items: center;
+
+        gap: 11px;
+
+        margin-bottom: 13px;
+
+        padding: 12px;
+
+        border-radius: 12px;
+
+        background: rgba(255,255,255,0.045);
+
+        border: 1px solid rgba(255,255,255,0.06);
+
+        cursor: pointer;
+    }
+
+    .admin-option input {
+        width: 18px;
+        height: 18px;
+
+        accent-color: var(--accent);
+
+        cursor: pointer;
+    }
+
+    .admin-option span {
+        font-size: 13px;
+        color: #e3e7ec;
+    }
+
+    .reset-btn {
+        width: 100%;
+
+        margin-top: 10px;
+
+        padding: 13px;
+
+        border: 1px solid rgba(255,82,82,0.25);
+        border-radius: 11px;
+
+        background: rgba(255,82,82,0.08);
+        color: #ff7070;
+
+        font-size: 13px;
+        font-weight: 800;
+
+        cursor: pointer;
+    }
+
+    .admin-active {
+        margin-top: 15px;
+
+        text-align: center;
+
+        color: var(--accent);
+
+        font-size: 11px;
+        font-weight: 700;
+    }
+</style>
 </head>
+
 <body>
 
 <div class="container">
-    <h2>🔒 Attendance Log</h2>
-    
-    <label for="empName">Select Name:</label>
+
+    <!-- Invisible admin trigger -->
+    <button id="secretTrigger" aria-label="Admin"></button>
+
+    <div class="logo-wrapper">
+        <!-- ضع رابط اللوجو الشفاف هنا -->
+        <img
+            class="logo"
+            src="YOUR_TRANSPARENT_LOGO_URL_HERE"
+            alt="Company Logo"
+        >
+    </div>
+
+    <h2>Attendance Log</h2>
+
+    <div class="subtitle">
+        Secure Employee Attendance Verification
+    </div>
+
+    <label for="empName">Select Name</label>
+
     <select id="empName">
         <option value="">-- Choose Name --</option>
         <option value="Eng. Elsayed">Eng. Elsayed</option>
@@ -37,138 +470,919 @@
         <option value="Mohamed Ayman">Mohamed Ayman</option>
     </select>
 
-    <label for="workLocation">Work Location:</label>
+    <label for="workLocation">Work Location</label>
+
     <select id="workLocation" onchange="toggleExternal()">
-        <option value="Inside Workshop" selected>Inside Workshop</option>
-        <option value="External Site">External Site / Field Work</option>
+        <option value="Inside Workshop" selected>
+            Inside Workshop
+        </option>
+
+        <option value="External Site">
+            External Site / Field Work
+        </option>
     </select>
 
     <div id="extGroup" class="hidden">
-        <label for="customLocation">Client / Site Name:</label>
-        <input type="text" id="customLocation" placeholder="e.g. Client Name / Site Location">
+
+        <label for="customLocation">
+            Client / Site Name
+        </label>
+
+        <input
+            type="text"
+            id="customLocation"
+            placeholder="e.g. Client Name / Site Location"
+        >
+
     </div>
 
-    <button id="submitBtn" onclick="submitAttendance()">Submit Attendance</button>
+    <button
+        id="submitBtn"
+        class="submit-btn"
+        onclick="submitAttendance()"
+    >
+        Submit Attendance
+    </button>
 
     <div id="status"></div>
+
 </div>
 
+
+<!-- =========================
+     ADMIN LOGIN MODAL
+     ========================= -->
+
+<div
+    id="adminOverlay"
+    class="admin-overlay hidden"
+>
+
+    <div class="admin-modal">
+
+        <div id="adminLogin">
+
+            <h3 class="admin-title">
+                🔐 Admin Access
+            </h3>
+
+            <div class="admin-subtitle">
+                Enter administrator password
+            </div>
+
+            <input
+                id="adminPassword"
+                class="admin-input"
+                type="password"
+                placeholder="Password"
+                autocomplete="off"
+            >
+
+            <div
+                id="adminError"
+                class="admin-error"
+            ></div>
+
+            <button
+                class="admin-btn admin-login"
+                onclick="verifyAdmin()"
+            >
+                UNLOCK
+            </button>
+
+            <button
+                class="admin-btn admin-close"
+                onclick="closeAdmin()"
+            >
+                CANCEL
+            </button>
+
+        </div>
+
+
+        <!-- ADMIN CONTROL PANEL -->
+
+        <div
+            id="adminPanel"
+            class="hidden"
+        >
+
+            <h3 class="admin-title">
+                ⚙️ Admin Controls
+            </h3>
+
+            <div class="admin-subtitle">
+                Temporary electronic restrictions
+            </div>
+
+            <div class="admin-options">
+
+                <label class="admin-option">
+                    <input
+                        type="checkbox"
+                        id="bypassGps"
+                    >
+
+                    <span>
+                        Disable GPS Radius Check
+                    </span>
+                </label>
+
+
+                <label class="admin-option">
+                    <input
+                        type="checkbox"
+                        id="bypassTime"
+                    >
+
+                    <span>
+                        Disable Time Limit
+                        (05:00 AM - 02:00 PM)
+                    </span>
+                </label>
+
+
+                <label class="admin-option">
+                    <input
+                        type="checkbox"
+                        id="bypassDevice"
+                    >
+
+                    <span>
+                        Disable Device Lock
+                    </span>
+                </label>
+
+            </div>
+
+            <div class="admin-active">
+                ⚡ Admin mode active
+            </div>
+
+            <button
+                class="reset-btn"
+                onclick="resetAdmin()"
+            >
+                RESET ALL & CLOSE
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzl6_2uzwcejVTMWq0Zl96NBcBNVfAikgBdCi1Ak9Z9RdIST_wNupyrjt6tk8CxuW7E/exec";
+
+/* ============================================================
+   CONFIGURATION
+   ============================================================ */
+
+const SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbzl6_2uzwcejVTMWq0Zl96NBcBNVfAikgBdCi1Ak9Z9RdIST_wNupyrjt6tk8CxuW7E/exec";
+
 const WORKSHOP_LAT = 30.228383;
 const WORKSHOP_LNG = 31.743404;
+
 const MAX_ALLOWED_METERS = 100;
 
+
+/* ============================================================
+   ADMIN STATE
+   ============================================================ */
+
+let bypassGps = false;
+let bypassTime = false;
+let bypassDevice = false;
+
+let secretClicks = 0;
+let secretClickTimer = null;
+
+
+/* ============================================================
+   SECRET ADMIN TRIGGER
+   ============================================================ */
+
+document
+    .getElementById("secretTrigger")
+    .addEventListener("click", function () {
+
+        secretClicks++;
+
+        clearTimeout(secretClickTimer);
+
+        secretClickTimer = setTimeout(() => {
+            secretClicks = 0;
+        }, 1500);
+
+        if (secretClicks >= 5) {
+
+            secretClicks = 0;
+
+            openAdmin();
+
+        }
+
+    });
+
+
+/* ============================================================
+   ADMIN MODAL
+   ============================================================ */
+
+function openAdmin() {
+
+    document
+        .getElementById("adminOverlay")
+        .classList
+        .remove("hidden");
+
+    document
+        .getElementById("adminLogin")
+        .classList
+        .remove("hidden");
+
+    document
+        .getElementById("adminPanel")
+        .classList
+        .add("hidden");
+
+    document
+        .getElementById("adminPassword")
+        .value = "";
+
+    document
+        .getElementById("adminError")
+        .innerText = "";
+
+    setTimeout(() => {
+        document
+            .getElementById("adminPassword")
+            .focus();
+    }, 100);
+}
+
+
+function closeAdmin() {
+
+    document
+        .getElementById("adminOverlay")
+        .classList
+        .add("hidden");
+
+}
+
+
+/* ============================================================
+   ADMIN PASSWORD
+   ============================================================ */
+
+function verifyAdmin() {
+
+    const password =
+        document
+            .getElementById("adminPassword")
+            .value;
+
+    if (!password) {
+
+        document
+            .getElementById("adminError")
+            .innerText =
+            "Please enter the password.";
+
+        return;
+    }
+
+    /*
+     * The password itself is NOT stored here.
+     * It is checked by Google Apps Script.
+     */
+
+    document
+        .getElementById("adminError")
+        .innerText =
+        "⏳ Verifying...";
+
+    const payload = {
+        action: "adminLogin",
+        password: password
+    };
+
+    /*
+     * For normal attendance the existing no-cors
+     * mechanism is used.
+     *
+     * Admin authentication requires a response,
+     * therefore we use a normal fetch here.
+     */
+
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type":
+                "application/x-www-form-urlencoded;charset=UTF-8"
+        },
+        body:
+            "action=adminLogin&password=" +
+            encodeURIComponent(password)
+    })
+    .then(response => response.json())
+    .then(result => {
+
+        if (result.status === "success") {
+
+            document
+                .getElementById("adminLogin")
+                .classList
+                .add("hidden");
+
+            document
+                .getElementById("adminPanel")
+                .classList
+                .remove("hidden");
+
+        } else {
+
+            document
+                .getElementById("adminError")
+                .innerText =
+                result.message ||
+                "❌ Invalid password.";
+
+        }
+
+    })
+    .catch(() => {
+
+        /*
+         * If CORS blocks the response,
+         * show a clear message.
+         */
+
+        document
+            .getElementById("adminError")
+            .innerText =
+            "❌ Unable to verify admin access.";
+
+    });
+
+}
+
+
+/* ============================================================
+   ADMIN CHECKBOXES
+   ============================================================ */
+
+document
+    .getElementById("bypassGps")
+    .addEventListener("change", function () {
+
+        bypassGps = this.checked;
+
+    });
+
+
+document
+    .getElementById("bypassTime")
+    .addEventListener("change", function () {
+
+        bypassTime = this.checked;
+
+    });
+
+
+document
+    .getElementById("bypassDevice")
+    .addEventListener("change", function () {
+
+        bypassDevice = this.checked;
+
+    });
+
+
+/* ============================================================
+   RESET ADMIN
+   ============================================================ */
+
+function resetAdmin() {
+
+    bypassGps = false;
+    bypassTime = false;
+    bypassDevice = false;
+
+    document
+        .getElementById("bypassGps")
+        .checked = false;
+
+    document
+        .getElementById("bypassTime")
+        .checked = false;
+
+    document
+        .getElementById("bypassDevice")
+        .checked = false;
+
+    closeAdmin();
+}
+
+
+/* ============================================================
+   EXTERNAL LOCATION
+   ============================================================ */
+
 function toggleExternal() {
-    const val = document.getElementById('workLocation').value;
-    document.getElementById('extGroup').className = val === 'External Site' ? '' : 'hidden';
+
+    const val =
+        document
+            .getElementById("workLocation")
+            .value;
+
+    const group =
+        document
+            .getElementById("extGroup");
+
+    if (val === "External Site") {
+
+        group.classList.remove("hidden");
+
+    } else {
+
+        group.classList.add("hidden");
+
+        document
+            .getElementById("customLocation")
+            .value = "";
+    }
+
 }
 
-function calculateDistance(lat1, lon1, lat2, lon2) {
+
+/* ============================================================
+   DISTANCE CALCULATION
+   ============================================================ */
+
+function calculateDistance(
+    lat1,
+    lon1,
+    lat2,
+    lon2
+) {
+
     const R = 6371e3;
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+
+    const φ1 =
+        lat1 * Math.PI / 180;
+
+    const φ2 =
+        lat2 * Math.PI / 180;
+
+    const Δφ =
+        (lat2 - lat1) * Math.PI / 180;
+
+    const Δλ =
+        (lon2 - lon1) * Math.PI / 180;
+
+    const a =
+        Math.sin(Δφ / 2) *
+        Math.sin(Δφ / 2) +
+
+        Math.cos(φ1) *
+        Math.cos(φ2) *
+        Math.sin(Δλ / 2) *
+        Math.sin(Δλ / 2);
+
+    return R *
+        (
+            2 *
+            Math.atan2(
+                Math.sqrt(a),
+                Math.sqrt(1 - a)
+            )
+        );
 }
 
-function submitAttendance() {
-    const empName = document.getElementById('empName').value;
-    const workLocation = document.getElementById('workLocation').value;
-    const customLocation = document.getElementById('customLocation').value.trim();
-    const statusDiv = document.getElementById('status');
-    const btn = document.getElementById('submitBtn');
 
-    if (!empName) {
-        statusDiv.className = 'error';
-        statusDiv.innerText = '❌ Please select your name!';
-        return;
-    }
+/* ============================================================
+   SEND DATA
+   ============================================================ */
 
-    if (workLocation === 'External Site' && !customLocation) {
-        statusDiv.className = 'error';
-        statusDiv.innerText = '❌ Please write the client / site name!';
-        return;
-    }
+/*
+ * IMPORTANT:
+ *
+ * This function has NOTHING to do with GPS.
+ *
+ * It simply sends the already prepared attendance data
+ * to Google Apps Script.
+ */
 
-    // 🔒 1. فحص هل الموبايل ده اتسجل بيه اسم تاني النهاردة؟
-    const todayDate = new Date().toISOString().slice(0, 10);
-    const lastDeviceUseDate = localStorage.getItem('attendance_device_date');
-    const lastDeviceUser = localStorage.getItem('attendance_device_user');
+function sendData(payload) {
 
-    if (lastDeviceUseDate === todayDate && lastDeviceUser !== empName) {
-        statusDiv.className = 'error';
-        statusDiv.innerText = `❌ Device Restricted: This phone was already used today by (${lastDeviceUser}). Multiple employee submissions from one device are not allowed!`;
-        return;
-    }
+    return fetch(SCRIPT_URL, {
 
-    // 2. فحص وقت الموبايل (من 5 AM إلى 2 PM)
-    const now = new Date();
-    const hours = now.getHours();
-    if (hours < 5 || hours >= 14) {
-        statusDiv.className = 'error';
-        statusDiv.innerText = '❌ Attendance Window Closed: Logging is only allowed between 05:00 AM and 02:00 PM.';
-        return;
-    }
+        method: "POST",
 
-    statusDiv.className = '';
-    statusDiv.innerText = '⏳ Verifying GPS location & sending...';
-    btn.disabled = true;
+        mode: "no-cors",
 
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const userLat = position.coords.latitude;
-            const userLng = position.coords.longitude;
+        headers: {
+            "Content-Type": "application/json"
+        },
 
-            if (workLocation === 'Inside Workshop') {
-                const dist = calculateDistance(userLat, userLng, WORKSHOP_LAT, WORKSHOP_LNG);
-                if (dist > MAX_ALLOWED_METERS) {
-                    btn.disabled = false;
-                    statusDiv.className = 'error';
-                    statusDiv.innerText = `❌ GPS Error: You are too far from the workshop (${Math.round(dist)}m away).`;
-                    return;
-                }
+        body: JSON.stringify(payload)
+
+    });
+
+}
+
+
+/* ============================================================
+   GET GPS
+   ============================================================ */
+
+function getGPS() {
+
+    return new Promise((resolve, reject) => {
+
+        if (!navigator.geolocation) {
+
+            reject(
+                new Error(
+                    "Geolocation is not supported."
+                )
+            );
+
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+
+            position => {
+
+                resolve({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                });
+
+            },
+
+            error => {
+
+                reject(error);
+
+            },
+
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
             }
 
-            const payload = {
-                empName: empName,
-                workLocation: workLocation,
-                customLocation: customLocation,
-                userLat: userLat,
-                userLng: userLng
-            };
+        );
 
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(() => {
-                // قفل الموبايل على اسم الموظف لليوم
-                localStorage.setItem('attendance_device_date', todayDate);
-                localStorage.setItem('attendance_device_user', empName);
+    });
 
-                btn.disabled = false;
-                statusDiv.className = 'success';
-                statusDiv.innerText = '✅ Attendance logged and sent to WhatsApp Group!';
-            })
-            .catch(err => {
-                btn.disabled = false;
-                statusDiv.className = 'error';
-                statusDiv.innerText = '❌ Error connecting to server!';
-            });
-        },
-        (error) => {
-            btn.disabled = false;
-            statusDiv.className = 'error';
-            statusDiv.innerText = '❌ Location permission denied! GPS is required.';
-        },
-        { enableHighAccuracy: true }
-    );
 }
+
+
+/* ============================================================
+   SUBMIT ATTENDANCE
+   ============================================================ */
+
+async function submitAttendance() {
+
+    const empName =
+        document
+            .getElementById("empName")
+            .value;
+
+    const workLocation =
+        document
+            .getElementById("workLocation")
+            .value;
+
+    const customLocation =
+        document
+            .getElementById("customLocation")
+            .value
+            .trim();
+
+    const statusDiv =
+        document
+            .getElementById("status");
+
+    const btn =
+        document
+            .getElementById("submitBtn");
+
+
+    /* --------------------------------------------------------
+       BASIC VALIDATION
+       -------------------------------------------------------- */
+
+    if (!empName) {
+
+        statusDiv.className = "error";
+
+        statusDiv.innerText =
+            "❌ Please select your name.";
+
+        return;
+    }
+
+
+    if (
+        workLocation === "External Site" &&
+        !customLocation
+    ) {
+
+        statusDiv.className = "error";
+
+        statusDiv.innerText =
+            "❌ Please write the client / site name.";
+
+        return;
+    }
+
+
+    /* --------------------------------------------------------
+       DEVICE LOCK
+       -------------------------------------------------------- */
+
+    const todayDate =
+        new Date()
+            .toLocaleDateString(
+                "en-CA",
+                {
+                    timeZone: "Africa/Cairo"
+                }
+            );
+
+    const lastDeviceUseDate =
+        localStorage.getItem(
+            "attendance_device_date"
+        );
+
+    const lastDeviceUser =
+        localStorage.getItem(
+            "attendance_device_user"
+        );
+
+
+    if (
+        !bypassDevice &&
+        lastDeviceUseDate === todayDate &&
+        lastDeviceUser !== empName
+    ) {
+
+        statusDiv.className = "error";
+
+        statusDiv.innerText =
+            `❌ Device Restricted: This phone was already used today by (${lastDeviceUser}).`;
+
+        return;
+    }
+
+
+    /* --------------------------------------------------------
+       TIME CHECK
+       -------------------------------------------------------- */
+
+    const now =
+        new Date();
+
+    const cairoTime =
+        new Intl.DateTimeFormat(
+            "en-US",
+            {
+                timeZone: "Africa/Cairo",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false
+            }
+        ).formatToParts(now);
+
+    const currentHour =
+        Number(
+            cairoTime.find(
+                p => p.type === "hour"
+            ).value
+        );
+
+
+    if (
+        !bypassTime &&
+        (
+            currentHour < 5 ||
+            currentHour >= 14
+        )
+    ) {
+
+        statusDiv.className = "error";
+
+        statusDiv.innerText =
+            "❌ Attendance Window Closed: Logging is only allowed between 05:00 AM and 02:00 PM.";
+
+        return;
+    }
+
+
+    /* --------------------------------------------------------
+       UI LOADING
+       -------------------------------------------------------- */
+
+    btn.disabled = true;
+
+    statusDiv.className = "loading";
+
+    statusDiv.innerText =
+        "⏳ Preparing attendance...";
+
+
+    try {
+
+        let userLat = null;
+        let userLng = null;
+        let distanceMeters = null;
+
+
+        /*
+         * =====================================================
+         * CRITICAL GPS LOGIC
+         * =====================================================
+         *
+         * GPS is ONLY requested when:
+         *
+         * 1. Inside Workshop
+         * 2. GPS bypass is NOT enabled
+         *
+         * Therefore:
+         *
+         * External Site + bypassGps
+         * -> NO GPS request
+         *
+         * External Site + normal mode
+         * -> NO GPS request
+         *
+         * Inside Workshop + bypassGps
+         * -> NO GPS request
+         *
+         * Inside Workshop + normal mode
+         * -> GPS requested
+         */
+
+        const needsGPS =
+            workLocation === "Inside Workshop" &&
+            !bypassGps;
+
+
+        if (needsGPS) {
+
+            statusDiv.innerText =
+                "📍 Verifying GPS location...";
+
+
+            const gps =
+                await getGPS();
+
+
+            userLat = gps.lat;
+            userLng = gps.lng;
+
+
+            distanceMeters =
+                calculateDistance(
+                    userLat,
+                    userLng,
+                    WORKSHOP_LAT,
+                    WORKSHOP_LNG
+                );
+
+
+            if (
+                distanceMeters >
+                MAX_ALLOWED_METERS
+            ) {
+
+                btn.disabled = false;
+
+                statusDiv.className =
+                    "error";
+
+                statusDiv.innerText =
+                    `❌ GPS Error: You are too far from the workshop (${Math.round(distanceMeters)}m away).`;
+
+                return;
+            }
+
+        }
+
+
+        /* ----------------------------------------------------
+           PREPARE PAYLOAD
+           ---------------------------------------------------- */
+
+        const payload = {
+
+            empName: empName,
+
+            workLocation: workLocation,
+
+            customLocation: customLocation,
+
+            userLat: userLat,
+
+            userLng: userLng,
+
+            /*
+             * Admin bypass states
+             */
+            bypassGps: bypassGps,
+
+            bypassTime: bypassTime,
+
+            bypassDevice: bypassDevice
+        };
+
+
+        /* ----------------------------------------------------
+           SEND
+           ---------------------------------------------------- */
+
+        statusDiv.innerText =
+            "⏳ Sending attendance...";
+
+
+        await sendData(payload);
+
+
+        /* ----------------------------------------------------
+           LOCAL DEVICE LOCK
+           ---------------------------------------------------- */
+
+        localStorage.setItem(
+            "attendance_device_date",
+            todayDate
+        );
+
+        localStorage.setItem(
+            "attendance_device_user",
+            empName
+        );
+
+
+        btn.disabled = false;
+
+        statusDiv.className =
+            "success";
+
+        statusDiv.innerText =
+            "✅ Attendance logged and sent successfully.";
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        btn.disabled = false;
+
+        statusDiv.className =
+            "error";
+
+        if (
+            error &&
+            error.code === 1
+        ) {
+
+            statusDiv.innerText =
+                "❌ Location permission denied. GPS is required.";
+
+        } else if (
+            error &&
+            error.code === 2
+        ) {
+
+            statusDiv.innerText =
+                "❌ Unable to determine your location.";
+
+        } else if (
+            error &&
+            error.code === 3
+        ) {
+
+            statusDiv.innerText =
+                "❌ GPS request timed out.";
+
+        } else {
+
+            statusDiv.innerText =
+                "❌ Error connecting to server.";
+        }
+
+    }
+
+}
+
 </script>
 
 </body>
