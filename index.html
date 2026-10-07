@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NMA Industrial Services - Attendance Portal</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151c2c;
+            --accent-blue: #1b4985;
+            --accent-glow: #2563eb;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --border-color: #2e3a52;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        
+        body { 
+            background: var(--bg-color); 
+            color: var(--text-main); 
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 15px; 
+            margin: 0; 
+        }
+
+        .container { 
+            position: relative;
+            width: 100%;
+            max-width: 420px; 
+            background: var(--card-bg); 
+            padding: 28px 24px; 
+            border-radius: 20px; 
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(37, 99, 235, 0.1); 
+            text-align: center;
+        }
+
+        /* Secret Admin Trigger Button */
+        .secret-trigger {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            border-radius: 50%;
+        }
+
+        .logo-container { margin-bottom: 20px; }
+
+        .logo-img {
+            max-width: 220px;
+            height: auto;
+            filter: drop-shadow(0px 2px 8px rgba(255,255,255,0.1));
+        }
+
+        .app-title {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-sub);
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 18px;
+        }
+
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: #cbd5e1; 
+            font-size: 13px; 
+            letter-spacing: 0.5px;
+        }
+
+        select, input[type="text"] { 
+            width: 100%; 
+            padding: 13px 15px; 
+            border: 1px solid var(--border-color); 
+            background: #0f172a; 
+            color: var(--text-main); 
+            border-radius: 10px; 
+            font-size: 14px; 
+            outline: none; 
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input[type="text"]:focus {
+            border-color: var(--accent-glow);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+        }
+
+        .hidden { display: none !important; }
+
+        .btn-submit { 
+            background: linear-gradient(135deg, #1d4ed8, #2563eb); 
+            color: #ffffff; 
+            border: none; 
+            padding: 15px; 
+            width: 100%; 
+            font-size: 15px; 
+            font-weight: 700; 
+            letter-spacing: 0.5px;
+            border-radius: 12px; 
+            cursor: pointer; 
+            margin-top: 10px; 
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-submit:disabled { 
+            background: #334155; 
+            color: #64748b;
+            box-shadow: none;
+            cursor: not-allowed; 
+        }
+
+        /* Admin Panel Styling */
+        .admin-panel {
+            margin-top: 25px;
+            padding: 15px;
+            background: #0d1322;
+            border: 1px dashed var(--warning);
+            border-radius: 12px;
+            text-align: left;
+        }
+
+        .admin-panel h4 {
+            margin: 0 0 12px 0;
+            color: var(--warning);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .admin-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: #e2e8f0;
+            cursor: pointer;
+        }
+
+        .admin-option input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .btn-reset {
+            background: #dc2626;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #status { 
+            margin-top: 20px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            line-height: 1.5; 
+            padding: 12px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        #status.error { 
+            display: block;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error); 
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        #status.success { 
+            display: block;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success); 
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        #status.info {
+            display: block;
+            background: rgba(37, 99, 235, 0.1);
+            color: #60a5fa;
+            border: 1px solid rgba(37, 99, 235, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Secret Trigger Area (Top Right Corner) -->
+    <button class="secret-trigger" onclick="handleSecretClick()"></button>
+
+    <div class="logo-container">
+        <img src="https://raw.githubusercontent.com/sayednma97-oss/sayednma97-oss.github.io/main/1000216982.gif" alt="NMA Logo" class="logo-img">
+    </div>
+
+    <div class="app-title">Attendance Portal</div>
+    
+    <div class="form-group">
+        <label for="empName">EMPLOYEE NAME</label>
+        <select id="empName">
+            <option value="">-- Select Your Name --</option>
+            <option value="Eng. Elsayed">Eng. Elsayed</option>
+            <option value="Mohamed Ali">Mohamed Ali</option>
+            <option value="Ahmed Hamada">Ahmed Hamada</option>
+            <option value="Ali Mohamed">Ali Mohamed</option>
+            <option value="Mohamed Fouad">Mohamed Fouad</option>
+            <option value="Mohamed Emam">Mohamed Emam</option>
+            <option value="Walid Mahmoud">Walid Mahmoud</option>
+            <option value="Mohamed Ayman">Mohamed Ayman</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="workLocation">WORK LOCATION</label>
+        <select id="workLocation" onchange="toggleExternal()">
+            <option value="Inside Workshop" selected>Inside Workshop</option>
+            <option value="External Site">External Site / Field Work</option>
+        </select>
+    </div>
+
+    <div id="extGroup" class="form-group hidden">
+        <label for="customLocation">CLIENT / SITE NAME</label>
+        <input type="text" id="customLocation" placeholder="e.g. Client Name / Site Location">
+    </div>
+
+    <button id="submitBtn" class="btn-submit" onclick="submitAttendance()">SUBMIT ATTENDANCE</button>
+
+    <div id="status"></div>
+
+    <!-- Admin Panel (Hidden by default) -->
+    <div id="adminPanel" class="admin-panel hidden">
+        <h4>⚡ Admin Control Panel</h4>
+        
+        <label class="admin-option">
+            <input type="checkbox" id="bypassGps"> Disable GPS Radius Check
+        </label>
+
+        <label class="admin-option">
+            <input type="checkbox" id="bypassTime"> Disable Time Limit (5 AM - 2 PM)
+        </label>
+
+        <label class="admin-option">
+            <input type="checkbox" id="bypassDevice"> Disable Device Lock / Restriction
+        </label>
+
+        <button class="btn-reset" onclick="resetAllRestrictions()">RESET ALL & CLOSE</button>
+    </div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzl6_2uzwcejVTMWq0Zl96NBcBNVfAikgBdCi1Ak9Z9RdIST_wNupyrjt6tk8CxuW7E/exec";
+const WORKSHOP_LAT = 30.228383;
+const WORKSHOP_LNG = 31.743404;
+const MAX_ALLOWED_METERS = 100;
+const ADMIN_PASSWORD = "ewL3nu8L"; // 🔑 Passcode to open admin panel
+
+let clickCounter = 0;
+let clickTimer = null;
+
+// Handle 5-Clicks Admin Trigger
+function handleSecretClick() {
+    clickCounter++;
+    clearTimeout(clickTimer);
+
+    if (clickCounter === 5) {
+        clickCounter = 0;
+        const pass = prompt("🔐 Enter Admin Passcode:");
+        if (pass === ADMIN_PASSWORD) {
+            document.getElementById('adminPanel').classList.remove('hidden');
+            alert("✅ Admin Mode Activated!");
+        } else if (pass !== null) {
+            alert("❌ Wrong Password!");
+        }
+    } else {
+        clickTimer = setTimeout(() => { clickCounter = 0; }, 2000);
+    }
+}
+
+// Reset Restrictions
+function resetAllRestrictions() {
+    document.getElementById('bypassGps').checked = false;
+    document.getElementById('bypassTime').checked = false;
+    document.getElementById('bypassDevice').checked = false;
+    document.getElementById('adminPanel').classList.add('hidden');
+    alert("🔄 All Restrictions Re-enabled!");
+}
+
+function toggleExternal() {
+    const val = document.getElementById('workLocation').value;
+    document.getElementById('extGroup').className = val === 'External Site' ? 'form-group' : 'form-group hidden';
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
+function submitAttendance() {
+    const empName = document.getElementById('empName').value;
+    const workLocation = document.getElementById('workLocation').value;
+    const customLocation = document.getElementById('customLocation').value.trim();
+    const statusDiv = document.getElementById('status');
+    const btn = document.getElementById('submitBtn');
+
+    // Admin Bypasses
+    const bypassGps = document.getElementById('bypassGps').checked;
+    const bypassTime = document.getElementById('bypassTime').checked;
+    const bypassDevice = document.getElementById('bypassDevice').checked;
+
+    if (!empName) {
+        statusDiv.className = 'error';
+        statusDiv.innerText = '❌ Please select your name!';
+        return;
+    }
+
+    if (workLocation === 'External Site' && !customLocation) {
+        statusDiv.className = 'error';
+        statusDiv.innerText = '❌ Please specify the client or site name!';
+        return;
+    }
+
+    // 🔒 1. Check Device Restriction
+    if (!bypassDevice) {
+        const todayDate = new Date().toISOString().slice(0, 10);
+        const lastDeviceUseDate = localStorage.getItem('attendance_device_date');
+        const lastDeviceUser = localStorage.getItem('attendance_device_user');
+
+        if (lastDeviceUseDate === todayDate && lastDeviceUser !== empName) {
+            statusDiv.className = 'error';
+            statusDiv.innerText = `❌ Device Restricted: Already used today by (${lastDeviceUser}).`;
+            return;
+        }
+    }
+
+    // 2. Check Time Limit
+    if (!bypassTime) {
+        const now = new Date();
+        const hours = now.getHours();
+        if (hours < 5 || hours >= 14) {
+            statusDiv.className = 'error';
+            statusDiv.innerText = '❌ Attendance Window Closed: Submissions allowed between 05:00 AM and 02:00 PM.';
+            return;
+        }
+    }
+
+    statusDiv.className = 'info';
+    statusDiv.innerText = '⏳ Verifying GPS location & sending log...';
+    btn.disabled = true;
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+
+            // GPS Distance Check
+            if (workLocation === 'Inside Workshop' && !bypassGps) {
+                const dist = calculateDistance(userLat, userLng, WORKSHOP_LAT, WORKSHOP_LNG);
+                if (dist > MAX_ALLOWED_METERS) {
+                    btn.disabled = false;
+                    statusDiv.className = 'error';
+                    statusDiv.innerText = `❌ GPS Error: You are too far from the workshop (${Math.round(dist)}m away).`;
+                    return;
+                }
+            }
+
+            const payload = {
+                empName: empName,
+                workLocation: workLocation,
+                customLocation: customLocation,
+                userLat: userLat,
+                userLng: userLng
+            };
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                const todayDate = new Date().toISOString().slice(0, 10);
+                localStorage.setItem('attendance_device_date', todayDate);
+                localStorage.setItem('attendance_device_user', empName);
+
+                btn.disabled = false;
+                statusDiv.className = 'success';
+                statusDiv.innerText = '✅ Attendance successfully verified & sent to WhatsApp!';
+            })
+            .catch(err => {
+                btn.disabled = false;
+                statusDiv.className = 'error';
+                statusDiv.innerText = '❌ Network Connection Error!';
+            });
+        },
+        (error) => {
+            btn.disabled = false;
+            statusDiv.className = 'error';
+            statusDiv.innerText = '❌ Location Permission Denied! GPS Access is Required.';
+        },
+        { enableHighAccuracy: true }
+    );
+}
+</script>
+
+</body>
+</html>
