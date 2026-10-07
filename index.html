@@ -43,7 +43,6 @@
             text-align: center;
         }
 
-        /* Secret Admin Trigger Button */
         .secret-trigger {
             position: absolute;
             top: 15px;
@@ -149,7 +148,6 @@
             cursor: not-allowed; 
         }
 
-        /* Admin Panel Styling */
         .admin-panel {
             margin-top: 25px;
             padding: 15px;
@@ -231,11 +229,9 @@
 <body>
 
 <div class="container">
-    <!-- Secret Trigger Area (Top Right Corner) -->
     <button class="secret-trigger" onclick="handleSecretClick()"></button>
 
     <div class="logo-container">
-        <!-- NMA Company Logo -->
         <img src="https://raw.githubusercontent.com/sayednma97-oss/sayednma97-oss.github.io/main/1000216982.gif" alt="NMA Industrial Services Logo" class="logo-img">
     </div>
 
@@ -273,7 +269,6 @@
 
     <div id="status"></div>
 
-    <!-- Admin Panel (Hidden by default) -->
     <div id="adminPanel" class="admin-panel hidden">
         <h4>⚡ Admin Control Panel</h4>
         
@@ -298,7 +293,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzl6_2uzwcejVTMWq0Zl
 const WORKSHOP_LAT = 30.228383;
 const WORKSHOP_LNG = 31.743404;
 const MAX_ALLOWED_METERS = 100;
-const ADMIN_PASSWORD = "ewL3nu8L"; // 🔑 Passcode
+const ADMIN_PASSWORD = "ewL3nu8L";
 
 let clickCounter = 0;
 let clickTimer = null;
@@ -344,7 +339,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
-// دالة منفصلة ومضمونة للإرسال للسيرفر والواتساب
+// دالة الإرسال المحدثة والمضمونة
 function sendData(empName, workLocation, customLocation, userLat, userLng) {
     const statusDiv = document.getElementById('status');
     const btn = document.getElementById('submitBtn');
@@ -357,10 +352,13 @@ function sendData(empName, workLocation, customLocation, userLat, userLng) {
         userLng: userLng
     };
 
+    // إرسال البيانات بتركيبة Text/Plain لتخطي قيود CORS في جوجل سكربت
     fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+        },
         body: JSON.stringify(payload)
     })
     .then(() => {
@@ -402,7 +400,6 @@ function submitAttendance() {
         return;
     }
 
-    // 1. Device Restriction Check
     if (!bypassDevice) {
         const todayDate = new Date().toISOString().slice(0, 10);
         const lastDeviceUseDate = localStorage.getItem('attendance_device_date');
@@ -415,7 +412,6 @@ function submitAttendance() {
         }
     }
 
-    // 2. Time Window Check
     if (!bypassTime) {
         const now = new Date();
         const hours = now.getHours();
@@ -430,13 +426,11 @@ function submitAttendance() {
     statusDiv.innerText = '⏳ Processing & sending attendance log...';
     btn.disabled = true;
 
-    // حالة تخطي الـ GPS أو الموقع الخارجي
     if (bypassGps || workLocation === 'External Site') {
         sendData(empName, workLocation, customLocation, WORKSHOP_LAT, WORKSHOP_LNG);
         return;
     }
 
-    // طلب الـ GPS للعمل داخل الورشة فقط
     navigator.geolocation.getCurrentPosition(
         (position) => {
             const userLat = position.coords.latitude;
